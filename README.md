@@ -1,34 +1,122 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Next.js Practice
+유튜브 강의 [Next.js Tutorial for Beginners](https://www.youtube.com/playlist?list=PL4cUxeGkcC9g9gP2onazU5-2M-AzA8eBw) 기반 Next.js 학습 프로젝트입니다.
 
-## Getting Started
+## About Project
+jsonplaceholder api를 사용해서 받아온 유저 데이터를 보여주는 간단한 웹사이트입니다.
 
-First, run the development server:
+## Link
+[User_List_App](https://nextjs-userlist.vercel.app)
+- depoyed using vercel
 
-```bash
-npm run dev
-# or
-yarn dev
+# Next.js
+
+## About Next.js
+
+Next.js는 리액트 애플리케이션을 위한 서버 사이드 렌더링(Server Side Rendering) 구현을 도와주는 프레임워크입니다. Next.js는 또한 코드 번들링, 코드 스플리팅 등을 도와줍니다.
+
+Next.js는 또한 다음과 같은 기능들을 제공합니다.
+
+- Page-based routing
+- Pre-rednering
+- 자동적인 코드 스플리팅
+- 빌트인 CSS, Sass 지원
+- Fast Refresh
+
+## Pages
+
+Pages 디렉토리 내에서 export 되는 '.js', '.jsx', '.ts', '.tsx' 파일들을 page라고 합니다. 각 페이지는 자동으로 이름을 기반으로 생성된 route와 연결됩니다.
+
+가령 'page/about.js' 파일에서 export하는 About 컴포넌트는 '/about'을 통해 접근 가능합니다. 
+
+https://nextjs-userlist.vercel.app/about
+
+### Pages with Dynamic Routes
+
+동적인 라우팅을 위해서는 param을 [ ] 으로 감싼 이름의 파일을 생성하면 됩니다. 
+
+가령 'users/[id].js' 파일에서는 각 id에 대한 html 페이지들을 미리 생생(Pre-render)해놓습니다. 따라서 예를 들어 1번 유저에 대한 디테일한 정보는 '/users/1'을 통해 접근 가능합니다.
+
+https://nextjs-userlist.vercel.app/users/1
+
+### Pre-rendering
+
+Next.js는 클라이언트 사이드에서 html 페이지를 생성하는 대신 모든 페이지들을 Pre-render 해놓습니다. 따라서 더 나은 성능과 SEO를 보여줍니다.
+
+각 생성된 html은 그 페이지만을 위한 최소한은 Javascript 코드와 함께 보내집니다. 브라우저에서 페이지가 로드되면 이 Javascript 코드를 통해 페이지가 interactive하게 됩니다. (hydration이라고 합니다.)
+
+### Two forms of Pre-rendering
+
+Next.js는 Pre-rendering을 위해 **Static Generation**과 **Server side Rendering**를 제공합니다. 이 두가지의 차이는 언제 html을 생성하는지입니다.
+
+- Static Generation(권장됨) : HTML이 빌드 타임에 생성되며 향후 각 request 마다 재사용됩니다.
+- Server-side Rendering : HTML이 각 request마다 생성됩니다. 
+
+Next.js는 이 둘중에 하나를 각 페이지마다 선택할 수 있도록 해줍니다. 따라서 어느 페이지에서는 Static Generation을 사용하고 어느 페이지에서는 Server-side Rendering을 사용하도록 할 수도 있습니다.
+
+
+## Data Fetching
+
+데이터를 가져오는 방식에는 3가지 함수들을 제공합니다.
+
+- getStaticProps(Static Generation) : 빌드 타임 때 데이터를 가져옵니다.
+- getStaticPaths(Static Generation) : 가져온 데이터를 기반으로 동적 라우트를 명시합니다.
+- getServerSideProps(Server-side Rendering) : 각 request마다 데이터를 가져옵니다.
+
+### getStaticProps
+
+'getStaticProps'라는 이름의 async 함수를 export 하면 Next.js는 이 함수가 반환하는 props를 가지고 페이지를 Pre-render 합니다.
+```js
+export async function getStaticProps(context) {
+  return {
+    props: {}, // will be passed to the page component as props
+  }
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+'context' 매개변수는 다음을 포함하는 객체입니다.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+- params : 동적 라우트를 사용하는 페이지들의 router 파라미터를 포함합니다. 예를 들어 페이지 이름이 [id].js라면 '{id : ...}'의 형태일 것입니다. 
+- preview: 프리뷰 모드이면 true, 아닐 경우 false 입니다.
+- locale
+- locales
+- defaultLocale
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+getStaticProps는 다음을 포함하는 객체를 반환해야 합니다.
+- props : 필수적인 객체로, 페이지 컴포넌트가 받을 prop을 포함합니다. serializable 객체이어야 합니다.
+- revalidate : 선택적인 객체로, 페이지 재생성하기까지의 시간(초)를 포함합니다. 이는 Incremental Static Regeneration과 관련있습니다.
+- notFound : 선택적인 객체로, true일 경우 페이지가 404 상태와 페이지를 반환하는 것을 허용합니다. 
+- redirect : 선택적인 객체로, 내부 혹은 외부적인 리소스로 리다이렉팅에 대한 값들을 포함합니다. 
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+다음은 getStaticProps의 예입니다.
+```js
+function Blog({ posts }) {
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li>{post.title}</li>
+      ))}
+    </ul>
+  )
+}
+export async function getStaticProps() {
+  const res = await fetch('https://.../posts')
+  const posts = await res.json()
 
-## Learn More
+  return {
+    props: {
+      posts,
+    },
+  }
+}
 
-To learn more about Next.js, take a look at the following resources:
+export default Blog
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+getStaticProps는 다음의 상황에서 사용합니다.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- 페이지를 생성할 떄 필요한 데이터가 빌드 타임 떄 가져올 수 있는 경우
+- 데이터가 공개적으로 캐시될 수 있는 경우 (특정 유저를 위한 것이 아닌 경우)
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### getStaticPaths
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
