@@ -120,3 +120,31 @@ getStaticProps는 다음의 상황에서 사용합니다.
 
 ### getStaticPaths
 
+동적 라우트가 필요하다면 getStaticPaths으로 paths의 리스트를 정의해야 빌드타임에 html 페이지들을 렌더링한다. 
+
+```js
+export async function getStaticPaths() {
+  return {
+    paths: [
+      { params: { ... } } 
+    ],
+    fallback: true or false 
+  };
+}
+```
+- path : 어떤 path가 렌더링되어야 할지를 결정한다. 예를 들어 'pages/posts/[id].js'라는 동적 라우트가 필요하다면 다음과 같은 paths를 가지는 객체를 반환해야한다.
+  ```js
+  return {
+    paths: [
+      { params: { id: '1' } },
+      { params: { id: '2' } }
+    ],
+    fallback: ...
+  }
+  ```
+  Next.js가 자동으로 'posts/1', 'posts/2'와 같은 페이지를 빌드 타임에 생성한다.
+  path안에 params는 페이지 내에 사용하는 파라미터와 일치해야한다.
+
+- fallback :
+  - false일 경우, 반환된 path가 아닌 경우 404page로 리다이렉트된다. 이는 path의 수가 적어 pre-render 해야하는 페이지의 수가 적을 경우 사용하면 된다. 또한 새로운 페이지들이 자주 추가되지 않는 경우 유용하다. 만약 새로운 페이지들을 렌더해야될 경우 다시 빌드를 해야되기 때문이다.
+  - true일 경우, 반환된 path가 아닌 경우 그 페이지의 fallback 버전을 보여준다. 동시에 서버에서는 그 path에 대한 html을 생성하고 완료될 경우 이 json을 브라우저에 보내 새로운 데이터를 페이지를 변경한다. Next.js는 이 path를 pre-rendered pages 리스트에 추가한다. 이후 리퀘스트부터는 원래 있었던 페이지처럼 동작한다.
